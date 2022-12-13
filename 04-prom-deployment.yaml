@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: "Service"
+metadata:
+  name: prometheus
+  labels:
+    name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - name: prometheus
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
+  allocateLoadBalancerNodePorts: true
+  sessionAffinity: None
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: prometheus
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.40.6
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.enable-lifecycle"
+        - "--storage.tsdb.retention.time=30d"
+        - "--log.level=info"
+        - "--query.timeout=4m"
+        - "--storage.tsdb.retention.size=2048MB"
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/prometheus/prometheus.yml
+          name: prometheus-config-volume
+          subPath: prometheus.yml
+        - mountPath: /etc/prometheus/rules/dns.rule
+          name: prometheus-rule-volume
+          subPath: dns.rule
+        - mountPath: /prometheus
+          name: prometheus-data-volume
+#        - mountPath: /etc/prometheus/prometheus.yml
+#          name: prometheus-conf-volume
+#          subPath: prometheus.yml
+#        - mountPath: /etc/prometheus/rules
+#          name: prometheus-rules-volume
+
+      volumes:
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-config
+      - name: prometheus-rule-volume
+        configMap:
+          name: prometheus-rule
+      - name: prometheus-data-volume
+        emptyDir: {}
+#        hostPath:
+#          path: /prom_data
+#        persistentVolumeClaim:
+#          claimName: prometheus-data-pvc
+#      - name: prometheus-rules-volume
+#        configMap:
+#          name: prometheus-rules
+
+
+

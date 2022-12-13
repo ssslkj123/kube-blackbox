@@ -1,0 +1,20 @@
+groups:
+- name: blackbox-dns
+  rules:
+  # Alert for any instance that is unreachable for >5 minutes.
+  #- alert: InstanceDown
+  #  expr: up == 0
+  #  for: 5m
+  #  labels:
+  #    severity: page
+  #  annotations:
+  #    summary: "Instance {{ $labels.instance }} down"
+  #    description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+  # Alert for any instance that has a median request latency >1s.
+  - alert: DNSRequesterror
+    expr: (100 * (sum_over_time(probe_dns_query_succeeded{}[5m]) / count_over_time(probe_dns_query_succeeded{}[5m])))  < 90
+    for: 2m
+    annotations:
+      summary: "High request latency on {{ $labels.job }}"
+      description: "{{ $labels.job }} probe_dns_query_succeeded 5mins lower than 90% consist 2mins, (current value: % {{ $value }} )"

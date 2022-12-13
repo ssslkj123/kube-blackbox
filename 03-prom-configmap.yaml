@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s 
+      evaluation_interval: 15s
+    #alterting:
+    #  alertmanagers:
+    #  - static_configs:
+    #    - targets:
+    #      - alertmanager.target:9093 # Alertmanager's address
+    rule_files:
+      - /etc/prometheus/rules/*.rule
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+        - targets: ['localhost:9090']
+      - job_name: "kubernetes-service-dns-baidu"
+        metrics_path: /probe # 不是 metrics，是 probe
+        params:
+          module: [dns_baidu] # DNS 模块
+        static_configs:
+        - targets:
+          - kube-dns.kube-system:53 # 不要省略端口号
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: blackbox-svc:9115 # 服务地址，和上面的 Service 定义保持一致, blackbox 检测功能暴露的端点地址。
+      - job_name: "kubernetes-service-dns-caocao"
+        metrics_path: /probe # 不是 metrics，是 probe
+        params:
+          module: [dns_caocao] # DNS 模块
+        static_configs:
+        - targets:
+          - kube-dns.kube-system:53 # 不要省略端口号
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: blackbox-svc:9115 # 服务地址，和上面的 Service 定义保持一致, blackbox 检测功能暴露的端点地址。
+      - job_name: "kubernetes-service-dns-sina"
+        metrics_path: /probe # 不是 metrics，是 probe
+        params:
+          module: [dns_sina] # DNS 模块
+        static_configs:
+        - targets:
+          - kube-dns.kube-system:53 # 不要省略端口号
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: blackbox-svc:9115 # 服务地址，和上面的 Service 定义保持一致, blackbox 检测功能暴露的端点地址。

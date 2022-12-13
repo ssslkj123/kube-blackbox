@@ -1,0 +1,58 @@
+kind: ConfigMap
+metadata:
+  name: blackbox
+apiVersion: v1
+data:
+  config.yml: |
+    modules:
+      http_2xx:  # http 检测模块  Blockbox-Exporter 中所有的探针均是以 Module 的信息进行配置
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2"]   
+          valid_status_codes: [200]  # 这里最好作一个返回状态码，在grafana作图时，有明示---陈刚注释。
+          method: GET
+          preferred_ip_protocol: "ip4"
+      http_post_2xx: # http post 监测模块
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2"]
+          method: POST
+          preferred_ip_protocol: "ip4"
+      tcp_connect:  # TCP 检测模块
+        prober: tcp
+        timeout: 10s
+      dns_baidu:  # dns 检测模块
+        prober: dns
+        timeout: 5s
+        dns:
+          valid_rcodes:
+            - NOERROR
+          transport_protocol: "tcp" # 也可以是使用upd协议
+          preferred_ip_protocol: "ip4"
+          query_name: "www.baidu.com"  # 检测这个url 的解析是否正常、
+          #query_name: "kubernetes.default.svc.cluster.local"  # 检测这个url 的解析是否正常、
+          query_type: "A"  # 请求方式 ，必选项
+      dns_caocao:  # dns 检测模块
+        prober: dns
+        timeout: 5s
+        dns:
+          valid_rcodes:
+            - NOERROR
+          transport_protocol: "tcp" # 也可以是使用upd协议
+          preferred_ip_protocol: "ip4"
+          query_name: "caocaokeji.cn"  # 检测这个url 的解析是否正常、
+          #query_name: "kubernetes.default.svc.cluster.local"  # 检测这个url 的解析是否正常、
+          query_type: "A"  # 请求方式 ，必选项
+      dns_sina:  # dns 检测模块
+        prober: dns
+        timeout: 5s
+        dns:
+          valid_rcodes:
+            - NOERROR
+          transport_protocol: "tcp" # 也可以是使用upd协议
+          preferred_ip_protocol: "ip4"
+          query_name: "www.sina.com"  # 检测这个url 的解析是否正常、
+          #query_name: "kubernetes.default.svc.cluster.local"  # 检测这个url 的解析是否正常、
+          query_type: "A"  # 请求方式 ，必选项
